@@ -1,0 +1,418 @@
+{
+  "name": "DSA",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -440,
+        585
+      ],
+      "id": "8dbc9def-06c4-4f12-94af-0713505e3e17",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1aF1omJFvD882hCvhcVM7wycglI-dfloni7HHDxJcOq8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1aF1omJFvD882hCvhcVM7wycglI-dfloni7HHDxJcOq8/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -220,
+        585
+      ],
+      "id": "ff9b2fe5-c491-440d-be4f-a1f47dfd41a9",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pZ2nR59l1Dj1Lkva",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        0,
+        585
+      ],
+      "id": "5557cf99-fef1-4bc5-a8b8-49d965505dbe",
+      "name": "Loop Over Items",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert software engineer with deep experience in solving coding problems, competitive programming, and technical interviews. You are given a LeetCode/GeeksForGeek question link. Link- {{ $json['Category/Links'] }}\n\nYour task is to:\n\n1. Parse the problem description from the link.\n2. Understand the constraints, edge cases, and input/output format.\n3. Provide a full explanation of the problem in simple terms.\n4. Give two or more approaches to solve the problem:\n   - A brute-force or naive approach (with time & space complexity).\n   - An optimized approach (with explanation, code, and complexity analysis).\n   - (Similarly more if required)\n5. Mention any important edge cases or tricky constraints to consider.\n6. Write clean, readable, and well-commented code for both approaches in C++.\n7. C++ should be using bits/stdc++.h and code should be written for html. e.g for angular brackets, &lt and &gt should be used.\n8. Format your response like this in a well-unified json:\n\n---\nProblem Name: [Auto-parsed from the link]\nDifficulty: [Easy / Medium / Hard]\n\n🔍 Problem Summary\n[Short summary of the problem in your own words]\n\n---\n\n🧠 Approach 1: Brute-force\n- **Explanation:**\n- **Time Complexity:**\n- **Space Complexity:**\n- C++ code with comments\n\n🧠 Approach 2: Optimized\n- **Explanation:**\n- **Time Complexity:**\n- **Space Complexity:**\n- C++ code with comments\n\nand more accordingly if required.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        440,
+        -140
+      ],
+      "id": "99ddb4a9-cc14-4876-8b36-12f78b16db59",
+      "name": "Basic LLM Chain",
+      "retryOnFail": false,
+      "waitBetweenTries": 0,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-lite-001",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        468,
+        80
+      ],
+      "id": "eff8363c-15f6-4ae2-9206-c3e1e945c220",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bCRQ87g3kIMP7fzg",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n  \"title\": \"DSA Problem Structured Output\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"problem_title\": {\n      \"type\": \"string\",\n      \"description\": \"The title of the DSA problem\"\n    },\n    \"difficulty\": {\n      \"type\": \"string\",\n      \"enum\": [\"Easy\", \"Medium\", \"Hard\"],\n      \"description\": \"Difficulty level of the problem\"\n    },\n    \"problem_statement\": {\n      \"type\": \"string\",\n      \"description\": \"Full description of the problem\"\n    },\n    \"brute_force\": {\n      \"type\": \"object\",\n      \"description\": \"Brute force solution details\",\n      \"properties\": {\n        \"approach\": { \"type\": \"string\" },\n        \"code\": { \"type\": \"string\" },\n        \"time_complexity\": { \"type\": \"string\" },\n        \"space_complexity\": { \"type\": \"string\" }\n      },\n      \"required\": [\"approach\", \"code\", \"time_complexity\", \"space_complexity\"]\n    },\n    \"optimal_solutions\": {\n      \"type\": \"array\",\n      \"description\": \"List of optimal solutions\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"name\": { \"type\": \"string\", \"description\": \"Name of the approach, e.g., Tabulation\" },\n          \"approach\": { \"type\": \"string\" },\n          \"code\": { \"type\": \"string\" },\n          \"time_complexity\": { \"type\": \"string\" },\n          \"space_complexity\": { \"type\": \"string\" }\n        },\n        \"required\": [\"name\", \"approach\", \"code\", \"time_complexity\", \"space_complexity\"]\n      }\n    },\n    \"example_inputs_outputs\": {\n      \"type\": \"array\",\n      \"description\": \"List of sample test cases with input, output, and explanation\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"input\": { \"type\": \"string\" },\n          \"output\": { \"type\": \"string\" },\n          \"explanation\": { \"type\": \"string\" }\n        },\n        \"required\": [\"input\", \"output\"]\n      }\n    },\n    \"notes\": {\n      \"type\": \"string\",\n      \"description\": \"Additional key points, edge cases, or observations\"\n    }\n  },\n  \"required\": [\n    \"problem_title\",\n    \"difficulty\",\n    \"problem_statement\",\n    \"brute_force\",\n    \"optimal_solutions\",\n    \"example_inputs_outputs\",\n    \"notes\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        588,
+        80
+      ],
+      "id": "1fa212c9-e7a0-4088-a54a-29e929016b39",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <title>DSA Notes</title>\n  <link rel=\"stylesheet\"\n    href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css\">\n  <script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js\"></script>\n  <script>hljs.highlightAll();</script>\n  <style>\n    body { font-family: 'Fira Code', monospace; padding: 40px; background: #f5f5f5; color: #333; }\n    h2 { background: #222; color: #fff; padding: 10px; }\n    h3 { color: #F57C00; }\n    h4 { color: #1a73e8; }\n    pre { background: #eee; padding: 10px; overflow-x: auto; }\n    table { width: 100%; border-collapse: collapse; margin-top: 10px; }\n    th, td { border: 1px solid #ccc; padding: 8px; }\n    hr { margin: 40px 0; border-top: 1px solid #ccc; }\n    a:link, a:visited { color: #F57C00; text-decoration: underline;;\n}\n  </style>\n</head>\n<body>\n  {{$json.html_body}}\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        518,
+        460
+      ],
+      "id": "5a1a5fee-2646-49ff-8e97-7c9fa7321039",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json.output;\nd.difficulty=$('If').first().json.Difficulty\nconst link = $('If').first().json['Category/Links']\n\nlet html = `<div class=\"problem-block\">\n  <h3><a href=${link}>${d.problem_title}</a> <span style=\"font-size:14px; color:#888;\">${d.difficulty}</span></h3>\n  <p>${d.problem_statement}</p>\n\n  <h4>🧠 Brute Force Approach</h4>\n  <p>${d.brute_force.approach}</p>\n  <pre><code class=\"language-python\">${d.brute_force.code}</code></pre>\n  <p><b>Time Complexity:</b> ${d.brute_force.time_complexity} | <b>Space Complexity:</b> ${d.brute_force.space_complexity}</p>\n\n  <h4>🚀 Optimal Approaches</h4>`;\n\nfor (const opt of d.optimal_solutions) {\n  html += `\n  <h5>➤ ${opt.name}</h5>\n  <p>${opt.approach}</p>\n  <pre><code class=\"language-python\">${opt.code}</code></pre>\n  <p><b>Time Complexity:</b> ${opt.time_complexity} | <b>Space Complexity:</b> ${opt.space_complexity}</p>`;\n}\n\nhtml += `\n  <h4>🔍 Examples</h4>\n  <table style=\"border-collapse: collapse; width: 100%;\">\n    <thead>\n      <tr style=\"background: #f0f0f0;\">\n        <th style=\"border: 1px solid #ccc; padding: 6px;\">Input</th>\n        <th style=\"border: 1px solid #ccc; padding: 6px;\">Output</th>\n        <th style=\"border: 1px solid #ccc; padding: 6px;\">Explanation</th>\n      </tr>\n    </thead>\n    <tbody>`;\n\nfor (const ex of d.example_inputs_outputs) {\n  html += `\n      <tr>\n        <td style=\"border: 1px solid #ccc; padding: 6px;\">${ex.input}</td>\n        <td style=\"border: 1px solid #ccc; padding: 6px;\">${ex.output}</td>\n        <td style=\"border: 1px solid #ccc; padding: 6px;\">${ex.explanation || \"\"}</td>\n      </tr>`;\n}\n\nhtml += `\n    </tbody>\n  </table>\n\n  <h4>📝 Notes</h4>\n  <p>${d.notes}</p>\n</div>\n<hr style=\"margin: 40px 0;\">`;\n\nreturn [{ json: { html_block: html } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        210
+      ],
+      "id": "c5f2fb40-94b9-4f6f-8799-8b28d0d34777",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.html }}",
+        "name": "=dsa_html.html",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "root",
+          "cachedResultName": "/ (Root folder)"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        816,
+        560
+      ],
+      "id": "6a51f3ba-dc99-4718-8194-442c90c39f6d",
+      "name": "Google Drive",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "GB4fPYQFng1KV5A4",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "94484bc6-db4a-4724-9536-4864c6c498a8",
+              "leftValue": "={{ $json['Category/Links'] }}",
+              "rightValue": "http",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        220,
+        160
+      ],
+      "id": "a4836231-1bff-4305-9f02-3384d46ec879",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "const category = $input.first().json['Category/Links'];\nreturn [{ json: { html_block: `<h2>${category}</h2>` } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        518,
+        260
+      ],
+      "id": "b428ede8-e223-4a0a-b619-7548300c2081",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const htmlParts = items.map(i => i.json.html_block);\nreturn [{ json: { html_body: htmlParts.join(\"\\n\") } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        460
+      ],
+      "id": "2e4d69fe-3698-44fb-8769-35cadb1215fc",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -200,
+        -140
+      ],
+      "id": "65d4326a-3e31-4784-9aa2-82105e77310e",
+      "name": "Wait",
+      "webhookId": "35de06d9-304d-4f6c-9b9f-60f4362f7b15"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Google Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive": {
+      "main": [
+        []
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "382ff84b-97aa-4715-8eaa-9f691cec2705",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1d0b15fdd40ee56ad7a634d3d16b44deedbf73c1f6669efec8ce93484949ccf6"
+  },
+  "id": "qNMjuXFHqavGfIOA",
+  "tags": []
+}
